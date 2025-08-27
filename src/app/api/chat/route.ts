@@ -12,29 +12,29 @@ const aiChat = async (req: Request): Promise<Response | undefined> => {
         role: "user",
         content: `Create a simple React component based on this description: "${prompt}".
 
-IMPORTANT: Return ONLY the component code. NO explanations, NO comments, NO additional text.
+IMPORTANT: Return ONLY the component code. NO explanations, NO comments, NO placeholder text, NO additional text.
 
 Requirements:
 - Use basic React (no hooks, no TypeScript)
-- Make it look stylish, minimal, and modern
+- Make it stylish, minimal, modern, and appealing
 - Use Tailwind CSS for styling
 - Do not export the component
-- Instead, define the component and then immediately render it below using JSX
-- Do not import any external files (like ./Button.css)
-- The only allowed import is React itself
+- Define the component as 'function Component() { ... }'
+- Immediately render it below with '<Component />'
+- Do not import anything (not even React)
 
-Output format:
+Output format (replace with REAL JSX, not placeholders):
+
+
 function Component() {
   return (
     <div className="...">
-      {/* JSX here */}
+      <!-- Actual JSX content generated here -->
     </div>
   );
 }
 
-<Component />
-
-Remember: ONLY the component code, no explanations or additional text.`,
+<Component />`,
       },
     ],
   });
