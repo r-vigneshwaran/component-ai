@@ -10,6 +10,12 @@ export default function Home() {
         onClick={() => router.push("/dynamic-component-string")}
       >
         Go to dynamic component string
+      </button>{" "}
+      <button
+        className="bg-blue-500 text-white p-2 rounded-md cursor-pointer"
+        onClick={() => router.push("/code-generator")}
+      >
+        Go to Code Generator
       </button>
     </div>
   );
