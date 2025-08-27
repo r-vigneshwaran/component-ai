@@ -9,8 +9,8 @@ const aiChat = async (req: Request): Promise<Response | undefined> => {
     model: ollama("codellama:7b-instruct"),
     messages: [
       {
-        role: "user",
-        content: `Create a simple React component based on this description: "${prompt}".
+        role: "system",
+        content: `Create a simple React component based on the user's description.
 
 IMPORTANT: Return ONLY the component code. NO explanations, NO comments, NO placeholder text, NO additional text.
 
@@ -25,7 +25,6 @@ Requirements:
 
 Output format (replace with REAL JSX, not placeholders):
 
-
 function Component() {
   return (
     <div className="...">
@@ -35,6 +34,10 @@ function Component() {
 }
 
 <Component />`,
+      },
+      {
+        role: "user",
+        content: prompt,
       },
     ],
   });
