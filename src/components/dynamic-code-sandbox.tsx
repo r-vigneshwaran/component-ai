@@ -1,44 +1,27 @@
+"use client";
 import "./styles.css";
-import React from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { createEditor } from "./editor";
 import debounce from "debounce";
 
-// default code
-const code = `import x from 'x';
-
-import { useEffect } from "react";
-
-function Greet() {
-  
-  return <span style={{color:"red", fontSize: "12px"}}>Hello World! New Word</span>
-}
-
-<Greet />
-`;
-
 interface DynamicCodeSandboxProps {
   // Code to be executed in the sandbox
-  code?: string;
+  code: string;
   // Optional initial code if no code prop is provided
   initialCode?: string;
-}
-
-interface DynamicCodeSandboxState {
-  code: string;
 }
 
 interface EditorInstance {
   run: (code: string) => void;
 }
 
-class DynamicCodeSandbox extends React.Component<
-  DynamicCodeSandboxProps,
-  DynamicCodeSandboxState
-> {
-  state: DynamicCodeSandboxState = {
-    code:
-      this.props.code ||
-      this.props.initialCode ||
+export default function DynamicCodeSandbox({
+  code: codeProp,
+  initialCode,
+}: DynamicCodeSandboxProps) {
+  const [code, setCode] = useState(
+    codeProp ||
+      initialCode ||
       `import x from 'x';
 
 import { useEffect } from "react";
@@ -49,59 +32,53 @@ function Greet() {
 }
 
 <Greet />
-`,
-  };
+`
+  );
 
-  editor: EditorInstance | null = null;
+  const editorRef = useRef<EditorInstance | null>(null);
+  const elRef = useRef<HTMLDivElement | null>(null);
 
-  el: HTMLDivElement | null = null;
-
-  componentDidMount() {
-    if (this.el) {
-      this.editor = createEditor(this.el);
-      this.editor.run(this.state.code);
-    }
-  }
-
-  componentDidUpdate(prevProps: DynamicCodeSandboxProps) {
-    // Update state if code prop changes
-    if (prevProps.code !== this.props.code && this.props.code) {
-      this.setState({ code: this.props.code });
-      if (this.editor) {
-        this.editor.run(this.props.code);
+  // Update code when prop changes
+  useEffect(() => {
+    if (codeProp && codeProp !== code) {
+      setCode(codeProp);
+      if (editorRef.current) {
+        editorRef.current.run(codeProp);
       }
     }
-  }
+  }, [codeProp, code]);
 
-  onCodeChange = ({
-    target: { value },
-  }: React.ChangeEvent<HTMLTextAreaElement>) => {
-    this.setState({ code: value });
-    this.run(value);
-  };
+  // Initialize editor on mount
+  useEffect(() => {
+    if (elRef.current) {
+      editorRef.current = createEditor(elRef.current);
+      editorRef.current.run(code);
+    }
+  }, [code]);
 
-  run = debounce((codeValue: string) => {
-    this.editor?.run(codeValue);
-  }, 500);
+  const onCodeChange = useCallback(
+    ({ target: { value } }: React.ChangeEvent<HTMLTextAreaElement>) => {
+      setCode(value);
+      run(value);
+    },
+    []
+  );
 
-  render() {
-    const { code } = this.state;
-    return (
-      <div className="app">
-        <div className="split-view">
-          <div className="code-editor">
-            <textarea value={code} onChange={this.onCodeChange} />
-          </div>
-          <div
-            className="preview"
-            ref={(el) => {
-              this.el = el;
-            }}
-          />
+  const run = useCallback(
+    debounce((codeValue: string) => {
+      editorRef.current?.run(codeValue);
+    }, 500),
+    []
+  );
+
+  return (
+    <div className="app">
+      <div className="split-view">
+        <div className="code-editor">
+          <textarea value={code} onChange={onCodeChange} />
         </div>
+        <div className="preview" ref={elRef} />
       </div>
-    );
-  }
+    </div>
+  );
 }
-
-export default DynamicCodeSandbox;

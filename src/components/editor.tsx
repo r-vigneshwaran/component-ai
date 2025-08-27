@@ -7,6 +7,8 @@ import * as Acorn from "acorn";
 import { generate as generateJs } from "escodegen";
 import { transform as babelTransform } from "@babel/standalone";
 
+type ReactType = typeof React;
+
 interface ASTNode {
   type: string;
   body: ASTNode[];
@@ -23,7 +25,15 @@ interface ASTNode {
 }
 
 interface EditorInstance {
-  compile: (code: string) => Function | undefined;
+  compile: (
+    code: string
+  ) =>
+    | ((
+        React: ReactType,
+        render: (node: React.ReactElement) => void,
+        require: (moduleName: string) => unknown
+      ) => void)
+    | undefined;
   run: (code: string) => void;
   getCompiledCode: (code: string) => string;
 }
@@ -46,7 +56,7 @@ export function findReactNode(ast: ASTNode): ASTNode | undefined {
 
 export function createEditor(
   domElement: HTMLElement,
-  moduleResolver: (moduleName: string) => any = () => null
+  moduleResolver: (moduleName: string) => unknown = () => null
 ): EditorInstance {
   let root: Root | null = null;
 
@@ -61,7 +71,15 @@ export function createEditor(
     return moduleResolver(moduleName);
   }
 
-  function getWrapperFunction(code: string): Function | undefined {
+  function getWrapperFunction(
+    code: string
+  ):
+    | ((
+        React: ReactType,
+        render: (node: React.ReactElement) => void,
+        require: (moduleName: string) => unknown
+      ) => void)
+    | undefined {
     try {
       // 1. transform code
       const babelResult = babelTransform(code, {
@@ -100,7 +118,11 @@ export function createEditor(
       }
 
       // 6. create a new wrapper function with all dependency as parameters
-      return new Function("React", "render", "require", generateJs(ast));
+      return new Function("React", "render", "require", generateJs(ast)) as (
+        React: ReactType,
+        render: (node: React.ReactElement) => void,
+        require: (moduleName: string) => unknown
+      ) => void;
     } catch (ex) {
       // in case of exception render the exception message
       const error = ex as Error;
