@@ -17,8 +17,10 @@ function Greet() {
 `;
 
 interface DynamicCodeSandboxProps {
-  // This interface is intentionally empty as no props are currently needed
-  // but it provides a foundation for future props
+  // Code to be executed in the sandbox
+  code?: string;
+  // Optional initial code if no code prop is provided
+  initialCode?: string;
 }
 
 interface DynamicCodeSandboxState {
@@ -34,7 +36,20 @@ class DynamicCodeSandbox extends React.Component<
   DynamicCodeSandboxState
 > {
   state: DynamicCodeSandboxState = {
-    code,
+    code:
+      this.props.code ||
+      this.props.initialCode ||
+      `import x from 'x';
+
+import { useEffect } from "react";
+
+function Greet() {
+  
+  return <span style={{color:"red", fontSize: "12px"}}>Hello World! New Word</span>
+}
+
+<Greet />
+`,
   };
 
   editor: EditorInstance | null = null;
@@ -44,7 +59,17 @@ class DynamicCodeSandbox extends React.Component<
   componentDidMount() {
     if (this.el) {
       this.editor = createEditor(this.el);
-      this.editor.run(code);
+      this.editor.run(this.state.code);
+    }
+  }
+
+  componentDidUpdate(prevProps: DynamicCodeSandboxProps) {
+    // Update state if code prop changes
+    if (prevProps.code !== this.props.code && this.props.code) {
+      this.setState({ code: this.props.code });
+      if (this.editor) {
+        this.editor.run(this.props.code);
+      }
     }
   }
 
